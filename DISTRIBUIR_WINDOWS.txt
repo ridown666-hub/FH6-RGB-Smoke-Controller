@@ -1,0 +1,67 @@
+FH6 RGB SMOKE CONTROLLER 5.11.1 — DISTRIBUIÇÃO NO WINDOWS
+
+O QUE ESTE PACOTE É
+--------------------
+Este ZIP contém o código-fonte Python e os recursos locais da aplicação. Não
+contém EXE, DLL, instalador, serviço, tarefa agendada, descarregador ou código
+obfuscado. O build_exe.bat serve apenas para criar a pasta do programa no teu
+próprio Windows.
+
+PORQUE O WINDOWS PODE MOSTRAR UM AVISO
+--------------------------------------
+Há dois avisos diferentes que podem aparecer:
+
+1) SmartScreen / editor desconhecido
+   Um EXE criado pelo PyInstaller não fica automaticamente assinado. O Windows
+   pode mostrar “Windows protegeu o computador” mesmo que o programa seja
+   legítimo. A solução para distribuição pública é assinar o EXE com um
+   certificado Authenticode de uma entidade certificadora. Um certificado
+   autoassinado não cria confiança automática nos computadores das outras
+   pessoas.
+
+2) Acesso controlado a pastas
+   Ao carregar em APLICAR NO JOGO, a app escreve os overrides escolhidos em
+   media/Physics e MediaPC do FH6. Se o Defender tiver o Acesso controlado a
+   pastas ativo, ele pode bloquear essa escrita. Isto é uma proteção do Windows,
+   não uma deteção de vírus, e não pode ser desativado de forma legítima pelo
+   código da app.
+
+COMO DISTRIBUIR DE FORMA CORRETA
+--------------------------------
+1. Extrai o ZIP numa máquina Windows limpa.
+2. Instala Python 3.11+ e executa, uma vez:
+       py -m pip install --user -r requirements.txt
+       py -m pip install --user pyinstaller
+3. Escolhe o formato:
+   - build_exe.bat cria o modo onedir recomendado: partilha a pasta
+     dist\FH6_RGB_Smoke_Controller_v5_11_1\ completa, não apenas o EXE.
+   - build_portable.bat cria o modo onefile: o resultado
+     dist\FH6_RGB_Smoke_Controller_v5_11_1_Portable.exe inclui Python,
+     Pillow e os recursos, podendo ser copiado sozinho para outro PC.
+4. Se tiveres um certificado Authenticode, assina o EXE final e verifica a
+   assinatura antes de o partilhar. Sem certificado, entrega também o SHA-256:
+       certutil -hashfile FH6_RGB_Smoke_Controller_v5_11_1.exe SHA256
+5. Partilha o hash por um canal independente e indica aos utilizadores para
+   confirmarem que o valor coincide antes de abrir o programa.
+
+O QUE CADA UTILIZADOR DEVE FAZER
+--------------------------------
+- Fechar o FH6 antes de aplicar ou restaurar qualquer efeito.
+- Escolher a pasta principal correta do FH6 e, para escapes, a pasta MediaPC.
+- Se o Windows mostrar “Acesso a pasta protegida bloqueado”, permitir apenas o
+  EXE verificado em Segurança do Windows > Proteção contra vírus e ameaças >
+  Gerir proteção contra ransomware > Permitir uma aplicação através do acesso
+  controlado a pastas. Não é necessário desligar o Defender nem criar exclusões
+  globais.
+- Se a política do computador for gerida por uma organização, só o
+  administrador dessa máquina pode autorizar a aplicação.
+
+LIMITAÇÃO IMPORTANTE
+--------------------
+O modo onefile resolve apenas a dependência de Python, DLLs e recursos ao lado
+do EXE. Não existe uma alteração Python que faça um EXE sem assinatura ser
+confiado automaticamente por todos os Windows, nem uma forma segura de contornar o
+Acesso controlado a pastas. Para que outras pessoas não tenham de autorizar
+nada, precisas de distribuir um EXE assinado com um certificado reconhecido e
+de as respetivas políticas de segurança permitirem a modificação dos ficheiros
+do jogo.

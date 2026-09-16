@@ -1,0 +1,3 @@
+# Dependência opcional para gerar a pasta .exe localmente.
+# O build_exe.bat não instala nada nem usa a rede.
+pyinstaller>=6.0
