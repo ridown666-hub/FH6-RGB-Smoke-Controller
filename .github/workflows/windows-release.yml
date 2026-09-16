@@ -1,0 +1,112 @@
+name: Build and publish Windows app
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fh6-windows-release
+  cancel-in-progress: true
+
+env:
+  RELEASE_TAG: v5.11.1
+  EXE_NAME: FH6_RGB_Smoke_Controller_v5_11_1_Portable.exe
+  ZIP_NAME: FH6_RGB_Smoke_Controller_v5_11_1_Portable.zip
+
+jobs:
+  build-release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install build dependencies
+        shell: pwsh
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python -m pip install -r requirements-build.txt
+
+      - name: Build portable EXE
+        shell: pwsh
+        run: |
+          python -m PyInstaller `
+            --noconfirm `
+            --clean `
+            --onefile `
+            --noconsole `
+            --name "FH6_RGB_Smoke_Controller_v5_11_1_Portable" `
+            --icon "assets/app_icon.ico" `
+            --add-data "assets;assets" `
+            --add-data "translations.json;." `
+            app.py
+
+          if (-not (Test-Path "dist/$env:EXE_NAME")) {
+            throw "O EXE esperado nao foi criado."
+          }
+
+      - name: Create ZIP and SHA-256
+        shell: pwsh
+        run: |
+          Compress-Archive -Path "dist/$env:EXE_NAME" -DestinationPath "dist/$env:ZIP_NAME" -Force
+          $exeHash = (Get-FileHash "dist/$env:EXE_NAME" -Algorithm SHA256).Hash.ToLower()
+          $zipHash = (Get-FileHash "dist/$env:ZIP_NAME" -Algorithm SHA256).Hash.ToLower()
+          @(
+            "$exeHash  $env:EXE_NAME",
+            "$zipHash  $env:ZIP_NAME"
+          ) | Set-Content -Path "dist/SHA256SUMS.txt" -Encoding ascii
+          Get-Content "dist/SHA256SUMS.txt"
+
+      - name: Keep release tag on current main commit
+        shell: pwsh
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -f $env:RELEASE_TAG
+          git push origin "refs/tags/$env:RELEASE_TAG" --force
+
+      - name: Create or update GitHub Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $assets = @(
+            "dist/$env:EXE_NAME",
+            "dist/$env:ZIP_NAME",
+            "dist/SHA256SUMS.txt"
+          )
+
+          gh release view $env:RELEASE_TAG --repo $env:GITHUB_REPOSITORY *> $null
+          if ($LASTEXITCODE -eq 0) {
+            gh release upload $env:RELEASE_TAG @assets --clobber --repo $env:GITHUB_REPOSITORY
+          }
+          else {
+            gh release create $env:RELEASE_TAG @assets `
+              --repo $env:GITHUB_REPOSITORY `
+              --title "FH6 RGB Smoke Controller v5.11.1" `
+              --notes "Windows portable build. Download the EXE directly or the ZIP package. SHA256SUMS.txt contains integrity hashes. This is an unofficial community project and is not affiliated with Microsoft, Xbox Game Studios, Playground Games or Turn 10."
+          }
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: FH6-RGB-Smoke-Controller-Windows
+          path: |
+            dist/${{ env.EXE_NAME }}
+            dist/${{ env.ZIP_NAME }}
+            dist/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 30
