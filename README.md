@@ -4,6 +4,20 @@ Aplicação Windows em Python para escolher e instalar cores de fumo de drift e 
 
 > Projeto não oficial, sem associação à Microsoft, Xbox Game Studios, Playground Games ou Turn 10. Usa apenas numa cópia do jogo que te pertença e guarda sempre os backups.
 
+## Download
+
+### Windows portátil
+
+[![Download latest Windows build](https://img.shields.io/badge/Download-Windows%20EXE-2ea44f?style=for-the-badge&logo=windows)](https://github.com/ridown666-hub/FH6-RGB-Smoke-Controller/releases/latest)
+
+Abre **Releases** e descarrega uma destas opções:
+
+- `FH6_RGB_Smoke_Controller_v5_11_1_Portable.exe` — aplicação portátil pronta a abrir.
+- `FH6_RGB_Smoke_Controller_v5_11_1_Portable.zip` — versão ZIP com o mesmo EXE.
+- `SHA256SUMS.txt` — hashes SHA-256 para verificar a integridade dos downloads.
+
+> Enquanto o repositório estiver **Private**, apenas pessoas com acesso conseguem ver e descarregar as Releases. Para disponibilizar publicamente, muda o repositório para **Public** em **Settings → General → Danger Zone → Change repository visibility**.
+
 ## Funcionalidades
 
 - 15 opções de fumo, incluindo cinco cores neon e o perfil RGB estático.
@@ -41,6 +55,10 @@ Depois escolhe:
 - `build_portable.bat` — um único EXE portátil.
 
 O resultado fica em `dist`. Um EXE criado localmente com PyInstaller não possui assinatura digital. Para distribuição pública sem aviso de editor desconhecido, assina o binário final com um certificado Authenticode reconhecido.
+
+### Build automático no GitHub
+
+O workflow `.github/workflows/windows-release.yml` compila a aplicação no Windows, cria o EXE portátil, gera um ZIP e publica/atualiza automaticamente a Release `v5.11.1` sempre que houver alterações na branch `main` ou quando o workflow for executado manualmente em **Actions**.
 
 ## Utilização
 
@@ -87,4 +105,3 @@ Consulta [SECURITY.md](SECURITY.md) e [DISTRIBUIR_WINDOWS.txt](DISTRIBUIR_WINDOW
 
 - Interface e aplicação: RicardoStonePT.
 - Bandeiras: [flag-icons](https://github.com/lipis/flag-icons), licença MIT incluída em `assets/flags`.
-
